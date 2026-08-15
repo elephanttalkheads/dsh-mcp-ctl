@@ -76,6 +76,23 @@ Example:
     patchFile: 'C:/Users/me/.dsh/profiles/web/cordis.patch.yml'
 ```
 
+### Updating
+
+```bash
+# 1. pull the new code in the plugin repo
+git -C /path/to/dsh-mcp-ctl pull
+# 2. refresh the copy installed in the profile (pnpm git deps are copies)
+cd "$DSH_HOME/profiles/web"
+pnpm remove dsh-mcp-ctl && pnpm add git+https://github.com/elephanttalkheads/dsh-mcp-ctl.git
+# 3. restart `dsh web` — loader HMR ignores node_modules, so a running
+#    process keeps the module it imported at startup
+```
+
+Note: the harness process usually runs with the workspace directory as its
+cwd; a package with this repo's `name`/`exports` can then resolve to the
+checkout itself (Node self-reference) instead of the profile copy. Keep both
+in sync and restart after updating.
+
 ## How it works under the hood
 
 | Piece | Mechanism |
