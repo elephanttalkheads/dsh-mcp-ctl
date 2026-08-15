@@ -6,7 +6,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { setRowDisabled, defaultPatchFile } from '../lib/index.js'
+import { setRowDisabled, defaultPatchFile, patchRowId } from '../lib/index.js'
 
 const sample = [
   '# ── External MCP servers ────────────────────────────────────────',
@@ -96,5 +96,9 @@ if (fs.existsSync(real)) {
     }
   }
 }
+
+// 8. patchRowId prefers the stored options id, falls back to the last segment
+assert.equal(patchRowId({ options: { id: 'mcp-github' }, id: 'include:mcp-github' }), 'mcp-github')
+assert.equal(patchRowId({ options: {}, id: 'include:mcp-context-mode' }), 'mcp-context-mode')
 
 console.log('all patch tests passed')
