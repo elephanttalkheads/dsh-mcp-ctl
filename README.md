@@ -39,12 +39,17 @@ fresh state.
 
 ## Install
 
-Prerelease of DSH `0.1.0-rc.x` web profile, pnpm workspace.
+### 首选:从 npm 安装
+
+Requires DSH `0.1.0-rc.x` web profile (pnpm workspace). In the profile directory:
 
 ```bash
 cd "$DSH_HOME/profiles/web"        # e.g. ~/.dsh/profiles/web
-pnpm add git+https://github.com/elephanttalkheads/dsh-mcp-ctl.git
+pnpm add dsh-mcp-ctl               # npm: npm install dsh-mcp-ctl
 ```
+
+> 中国大陆镜像注意:若 npmmirror 尚未同步新版本,显式指定官方源
+> `pnpm add dsh-mcp-ctl --registry=https://registry.npmjs.org/`。
 
 Then add one row to the profile's `cordis.patch.yml` — **as an insert** (a
 bare top-level `- id:` entry would be treated as an override of an existing
@@ -60,6 +65,21 @@ The loader's HMR mounts the host half immediately; the `/mcp` command works
 right away. The Web client card appears after one browser refresh (the client
 bundle is served by the profile's client-modules route once the entry is live).
 No process restart is required.
+
+### 备选:从源码安装 (git)
+
+For unreleased code or development:
+
+```bash
+cd "$DSH_HOME/profiles/web"
+pnpm add git+https://github.com/elephanttalkheads/dsh-mcp-ctl.git
+```
+
+Then add the same `- insert:` row shown above. Note the harness process
+usually runs with the workspace directory as its cwd; a package with this
+repo's `name`/`exports` can then resolve to the checkout itself (Node
+self-reference) instead of the profile copy — keep the checkout in sync and
+restart after updating.
 
 ### Config
 
@@ -79,19 +99,23 @@ Example:
 ### Updating
 
 ```bash
-# 1. pull the new code in the plugin repo
-git -C /path/to/dsh-mcp-ctl pull
-# 2. refresh the copy installed in the profile (pnpm git deps are copies)
 cd "$DSH_HOME/profiles/web"
-pnpm remove dsh-mcp-ctl && pnpm add git+https://github.com/elephanttalkheads/dsh-mcp-ctl.git
-# 3. restart `dsh web` — loader HMR ignores node_modules, so a running
-#    process keeps the module it imported at startup
+pnpm update dsh-mcp-ctl            # or: pnpm add dsh-mcp-ctl@latest
+# restart `dsh web` — loader HMR ignores node_modules, so a running process
+# keeps the module it imported at startup
 ```
 
-Note: the harness process usually runs with the workspace directory as its
-cwd; a package with this repo's `name`/`exports` can then resolve to the
-checkout itself (Node self-reference) instead of the profile copy. Keep both
-in sync and restart after updating.
+### Publishing
+
+New versions go to the npm registry (account `elephantalker`). The npm
+account's default registry is the npmmirror mirror, so always publish to the
+official registry explicitly:
+
+```bash
+npm version patch    # or minor / major — semver: fixes=patch, features=minor
+npm publish --registry=https://registry.npmjs.org/
+git push --follow-tags
+```
 
 ## How it works under the hood
 

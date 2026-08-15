@@ -42,5 +42,11 @@ toggles each one on/off.
   list, so every card converges on live state after any toggle.
 - **Command Plane** — DSH's human slash-command registry (`ctx.commands`).
   Command results render in the UI and never enter model history.
-- **Command Card** — the per-command interactive row in the chat view, keyed by
-  command name in the `conversation.chat.commandview` slot.
+- **Registry Install** — installing `dsh-mcp-ctl` from the npm registry
+  (`pnpm add dsh-mcp-ctl`); the preferred distribution channel. Updates are a
+  plain `pnpm update` plus one harness restart.
+- **Git Install** — installing from the GitHub checkout
+  (`pnpm add git+https://github.com/elephanttalkheads/dsh-mcp-ctl.git`); the
+  fallback for unreleased code. Because the harness process's cwd is usually
+  the workspace, Node self-reference can resolve the package to the checkout
+  instead of the profile copy — keep both in sync.

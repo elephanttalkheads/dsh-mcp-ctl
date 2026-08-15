@@ -14,6 +14,13 @@
     "README.md",
     "LICENSE"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/elephanttalkheads/dsh-mcp-ctl.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "check": "node --check lib/index.js && node --check lib/client.js",
     "test": "node test/patch.test.mjs"
