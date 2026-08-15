@@ -97,8 +97,11 @@ if (fs.existsSync(real)) {
   }
 }
 
-// 8. patchRowId prefers the stored options id, falls back to the last segment
+// 8. patchRowId always returns the last id segment (options.id itself may
+// carry the include-tree prefix)
 assert.equal(patchRowId({ options: { id: 'mcp-github' }, id: 'include:mcp-github' }), 'mcp-github')
-assert.equal(patchRowId({ options: {}, id: 'include:mcp-context-mode' }), 'mcp-context-mode')
+assert.equal(patchRowId({ options: { id: 'include:mcp-context-mode' }, id: 'include:mcp-context-mode' }), 'mcp-context-mode')
+assert.equal(patchRowId({ options: {}, id: 'include:mcp-gitee' }), 'mcp-gitee')
+assert.equal(patchRowId({ options: {}, id: 'mcp-top' }), 'mcp-top')
 
 console.log('all patch tests passed')
