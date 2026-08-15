@@ -46,11 +46,14 @@ cd "$DSH_HOME/profiles/web"        # e.g. ~/.dsh/profiles/web
 pnpm add git+https://github.com/elephanttalkheads/dsh-mcp-ctl.git
 ```
 
-Then add one row to the profile's `cordis.patch.yml`:
+Then add one row to the profile's `cordis.patch.yml` — **as an insert** (a
+bare top-level `- id:` entry would be treated as an override of an existing
+entry and silently skipped):
 
 ```yaml
-- id: mcp-ctl
-  name: 'dsh-mcp-ctl'
+- insert:
+    - id: mcp-ctl
+      name: 'dsh-mcp-ctl'
 ```
 
 The loader's HMR mounts the host half immediately; the `/mcp` command works

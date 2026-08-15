@@ -28,6 +28,18 @@ toggles each one on/off.
   without restarting the harness.
 - **Toggle** — flipping a server row's enablement so its tools register
   (on) or unregister (off).
+- **Patch Row Insert** — a patch entry shaped `- insert:` wrapping new rows.
+  New plugins (including MCP servers) must be inserted this way; a top-level
+  `- id: X` patch entry is an *override* of an already-existing entry and is
+  silently skipped when `X` does not exist.
+- **Row Id** — the bare id a row was inserted under in the patch file
+  (`mcp-github`). The loader may namespace live entry ids (`include:mcp-github`),
+  so patch edits always target the raw row id (`entry.options.id`, falling
+  back to the last id segment).
+- **Command Card** — the per-command interactive row in the chat view, keyed by
+  command name in the `conversation.chat.commandview` slot. Cards render the
+  state carried by the newest `mcp` command node in the session's legacy node
+  list, so every card converges on live state after any toggle.
 - **Command Plane** — DSH's human slash-command registry (`ctx.commands`).
   Command results render in the UI and never enter model history.
 - **Command Card** — the per-command interactive row in the chat view, keyed by
