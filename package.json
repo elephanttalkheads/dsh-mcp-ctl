@@ -1,6 +1,6 @@
 {
   "name": "dsh-mcp-ctl",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Claude Code style /mcp slash command for DeepSeek Harness: list MCP servers with live status and toggle them on/off.",
   "type": "module",
   "main": "lib/index.js",
