@@ -125,15 +125,33 @@ pnpm update dsh-mcp-ctl            # or: pnpm add dsh-mcp-ctl@latest
 
 ### Publishing
 
-New versions go to the npm registry (account `elephantalker`). The npm
-account's default registry is the npmmirror mirror, so always publish to the
-official registry explicitly:
+Releases go through npm **Trusted Publishing**: the GitHub Actions workflow
+exchanges an OIDC token for a short-lived publish credential, so no long-lived
+npm token is stored in this repository or in CI secrets. (npm also now refuses
+2FA-bypassing tokens for direct publishing, so a stored token is not an option.)
+
+One-time setup on npmjs.com — package → Settings → Trusted publishing →
+GitHub Actions:
+
+| Field | Value |
+|---|---|
+| Organization or user | `elephanttalkheads` |
+| Repository | `dsh-mcp-ctl` |
+| Workflow filename | `publish.yml` |
+| Environment name | *(leave empty)* |
+| Allowed actions | `npm publish` |
+
+Release:
 
 ```bash
-npm version patch    # or minor / major — semver: fixes=patch, features=minor
-npm publish --registry=https://registry.npmjs.org/
-git push --follow-tags
+npm version patch      # or minor / major — semver: fixes=patch, features=minor
+git push --follow-tags # the v<version> tag runs .github/workflows/publish.yml
 ```
+
+The workflow checks the tag against `package.json`, runs both test suites and
+publishes with provenance. To publish the version already on the default branch
+(or to retry a failed run), start the workflow manually from the Actions tab —
+the `workflow_dispatch` trigger skips the tag check.
 
 ## How it works under the hood
 
