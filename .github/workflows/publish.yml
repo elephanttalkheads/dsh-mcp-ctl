@@ -1,0 +1,56 @@
+# Publishes dsh-mcp-ctl to the npm registry with npm Trusted Publishing: the job
+# exchanges a GitHub OIDC token for a short-lived publish credential, so no
+# long-lived npm token lives in this repository or in GitHub secrets.
+#
+# One-time setup on npmjs.com — package → Settings → Trusted publishing →
+# GitHub Actions:
+#   Organization or user: elephanttalkheads
+#   Repository:           dsh-mcp-ctl
+#   Workflow filename:    publish.yml
+#   Environment name:     (leave empty)
+#   Allowed actions:      npm publish
+#
+# Release flow: bump `version` in package.json, commit, push the matching
+# `v<version>` tag (or run this workflow from the Actions tab for the version
+# already on the default branch).
+name: publish
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # lets GitHub issue the OIDC token npm exchanges for a publish credential
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+      # Trusted Publishing needs npm >= 11.5.1; Node 24 ships npm 11, but the
+      # runner image can lag behind the next minor.
+      - name: Ensure an npm that speaks Trusted Publishing
+        run: |
+          npm install -g npm@latest
+          npm --version
+      - name: Check the tag matches package.json
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$version" ]; then
+            echo "::error::tag v$tag does not match package.json version $version"
+            exit 1
+          fi
+      - run: npm test
+      # No NODE_AUTH_TOKEN on purpose: npm falls back to the OIDC exchange.
+      - run: npm publish
