@@ -62,11 +62,24 @@ toggles each one on/off.
   list, so every card converges on live state after any toggle.
 - **Command Plane** — DSH's human slash-command registry (`ctx.commands`).
   Command results render in the UI and never enter model history.
+- **Bundle Patch** — this package's own `cordis.patch.yml`, declared as
+  `dsh.bundle.patch` in `package.json`. It is the package's mount declaration:
+  the CLI's bundle reconcile appends the package name to `dsh.profile.bundles`
+  when it sees the declaration, and the profile boot merges the patch as one
+  more layer. The layer inserts the single row `mcp-ctl`; declaring it is what
+  makes `dsh plugin add` install *and* mount in one command, instead of
+  `pnpm add` plus a hand-edited profile row.
 - **Registry Install** — installing `dsh-mcp-ctl` from the npm registry
-  (`pnpm add dsh-mcp-ctl`); the preferred distribution channel. Updates are a
-  plain `pnpm update` plus one harness restart.
+  (`dsh plugin --profile <name> add dsh-mcp-ctl`); the preferred distribution
+  channel. The CLI both installs and, through the bundle patch, mounts.
+- **Manual Mount** — the legacy channel: `pnpm add dsh-mcp-ctl` leaves the
+  package out of `dsh.profile.bundles`, so the profile's own `cordis.patch.yml`
+  must insert the `mcp-ctl` row by hand (and `dsh-market` mounts such a package
+  as a client-only shim). Both channels insert the same row id, so switching
+  requires removing the manual row to avoid a double mount.
 - **Git Install** — installing from the GitHub checkout
-  (`pnpm add git+https://github.com/elephanttalkheads/dsh-mcp-ctl.git`); the
-  fallback for unreleased code. Because the harness process's cwd is usually
+  (`dsh plugin --profile <name> add git+https://github.com/elephanttalkheads/dsh-mcp-ctl.git`);
+  the fallback for unreleased code. The bundle patch travels with the checkout,
+  so the same one command mounts. Because the harness process's cwd is usually
   the workspace, Node self-reference can resolve the package to the checkout
   instead of the profile copy — keep both in sync.

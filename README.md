@@ -46,22 +46,34 @@ Requires a DSH `0.1.5-rc.x` web profile (pnpm workspace) — see
 In the profile directory:
 
 ```bash
-cd "$DSH_HOME/profiles/web"        # e.g. ~/.dsh/profiles/web
-pnpm add dsh-mcp-ctl               # npm: npm install dsh-mcp-ctl
+cd "$DSH_HOME/profiles/web"                 # e.g. ~/.dsh/profiles/web
+dsh plugin --profile web add dsh-mcp-ctl    # installs AND mounts
 ```
 
-> 中国大陆镜像注意:若 npmmirror 尚未同步新版本,显式指定官方源
-> `pnpm add dsh-mcp-ctl --registry=https://registry.npmjs.org/`。
+The package declares `dsh.bundle.patch`, so `dsh plugin add` reconciles it into
+`dsh.profile.bundles` and the profile boot merges this package's own
+`cordis.patch.yml`. One command installs and mounts — there is no row to add by
+hand any more.
 
-Then add one row to the profile's `cordis.patch.yml` — **as an insert** (a
-bare top-level `- id:` entry would be treated as an override of an existing
-entry and silently skipped):
+> 中国大陆镜像注意:若 npmmirror 尚未同步新版本,显式指定官方源
+> `--registry=https://registry.npmjs.org/`。
+
+**Legacy / manual channel.** Only needed when the package sits in
+`node_modules` but is *not* listed in `dsh.profile.bundles` — that is, after a
+plain `pnpm add` without the CLI, which is also the shape `dsh-market` mounts
+as a client-only shim. Add one row to the profile's `cordis.patch.yml` — **as an
+insert** (a bare top-level `- id:` entry would be treated as an override of an
+existing entry and silently skipped):
 
 ```yaml
 - insert:
     - id: mcp-ctl
       name: 'dsh-mcp-ctl'
 ```
+
+> Both channels insert the same row id `mcp-ctl`. If the profile patch still
+> carries the manual row, delete it before switching to the bundle channel, or
+> the host half mounts twice (two `/mcp` registrations, two client cards).
 
 The loader's HMR mounts the host half immediately; the `/mcp` command works
 right away. The Web client card appears after one browser refresh (the client
@@ -74,14 +86,14 @@ For unreleased code or development:
 
 ```bash
 cd "$DSH_HOME/profiles/web"
-pnpm add git+https://github.com/elephanttalkheads/dsh-mcp-ctl.git
+dsh plugin --profile web add git+https://github.com/elephanttalkheads/dsh-mcp-ctl.git
 ```
 
-Then add the same `- insert:` row shown above. Note the harness process
-usually runs with the workspace directory as its cwd; a package with this
-repo's `name`/`exports` can then resolve to the checkout itself (Node
-self-reference) instead of the profile copy — keep the checkout in sync and
-restart after updating.
+The bundle layer travels with the checkout, so the same one command installs and
+mounts. Note the harness process usually runs with the workspace directory as
+its cwd; a package with this repo's `name`/`exports` can then resolve to the
+checkout itself (Node self-reference) instead of the profile copy — keep the
+checkout in sync and restart after updating.
 
 ### Config
 
