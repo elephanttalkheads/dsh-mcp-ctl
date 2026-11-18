@@ -13,6 +13,12 @@ In DSH, each MCP server is a composition row running `@deepseek-ai/dsh-mcp-clien
   (including disabled ones), reading its enablement, loader fiber phase
   (`pending` / `loading` / `active` / `failed` / `unloading`) and the number of
   tools registered as `mcp__<serverName>__*`;
+- **also discovers adapter-mounted servers**: a bundle plugin can bridge its own
+  stdio server through the same bridge package without adding a loader row
+  named `@deepseek-ai/dsh-mcp-client` (e.g. `dsh-computer-use-win` mounts
+  `serverName: 'wincu'` this way). Those are found from the unmatched
+  `mcp__<serverName>__*` tool prefixes and rendered read-only — they have no
+  patch row, so `/mcp` will not offer a toggle for them;
 - renders an **interactive card** in the conversation (via the
   `conversation.chat.commandview` slot, key `mcp`) with per-server toggle
   buttons, status dots and tool counts — a warning flag when a server is
@@ -41,7 +47,8 @@ fresh state.
 
 ### 首选:从 npm 安装
 
-Requires a DSH `0.1.5-rc.x` web profile (pnpm workspace) — see
+Requires a current DSH web profile (pnpm workspace; verified on `0.2.1-rc.2`,
+with the `0.1.5-rc.x` client hooks kept as fallbacks) — see
 [Compatibility](#compatibility) for the exact contracts each half uses.
 In the profile directory:
 
@@ -170,7 +177,7 @@ the `workflow_dispatch` trigger skips the tag check.
 | Piece | Mechanism |
 |---|---|
 | command | `ctx.commands.register` (`@deepseek-ai/dsh-commands`), with an `input.hint` for the composer |
-| discovery | `ctx.loader.entries()` filtered by `name === '@deepseek-ai/dsh-mcp-client'` |
+| discovery | loader rows with `name === '@deepseek-ai/dsh-mcp-client'`, plus unmatched `mcp__<server>__*` tool prefixes for adapter-mounted servers |
 | status | `entry.disabled` + `entry.fiber.state` (same mapping as `dsh-host-plugin-inventory`) |
 | tool count | `ctx.tools.schemas()` prefix-matched by `mcp__<serverName>__` |
 | live toggle | `entry.update({ disabled })` — the loader's own mutation API |
@@ -182,9 +189,10 @@ the newest `mcp` command node found in the live chat snapshot.
 
 ## Compatibility
 
-The package is tested against the contracts shipped in DSH `0.1.5-rc.x`
-(harness packages `0.1.5-rc.2`). The version-sensitive points, all covered by
-`npm test`:
+The package is tested against the contracts shipped in DSH `0.2.1-rc.2`
+(harness packages `0.2.1-rc.2`), with the `0.1.5-rc.x` client fallbacks kept
+(`useSession(...).chat.legacy.nodes`). The version-sensitive points, all
+covered by `npm test`:
 
 | Half | Contract | Notes |
 |---|---|---|
@@ -200,6 +208,12 @@ The package is tested against the contracts shipped in DSH `0.1.5-rc.x`
 Known limitation: if the home-level layer (`$DSH_HOME/cordis.patch.yml`) pins the
 same row, it is applied after the profile layer and outranks this plugin's edit;
 remove the entry there, or point `patchFile` at that file.
+
+Adapter-mounted servers (a bundle plugin bridging through
+`@deepseek-ai/dsh-mcp-client` without a loader row, e.g. `wincu`) are inferred
+read-only from their `mcp__<serverName>__*` tool prefixes: `/mcp` lists them
+with status and tool count, and refuses `on|off` for them because there is no
+patch row to edit or loader entry to restart.
 
 ## Development
 

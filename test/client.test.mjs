@@ -178,4 +178,24 @@ assert.match(failed.text, /未知服务器: nope/, 'error outcome surfaced')
 const running = walk(registration.component({ ctx, sessionId: 's1', node: commandNode('', null) }))
 assert.match(running.text, /执行中/, 'running placeholder')
 
+// ── 8. adapter-mounted servers render read-only rows ────────────────────────
+const adapterState = {
+  ...state,
+  servers: [
+    ...state.servers,
+    { id: null, serverName: 'wincu', transport: 'adapter', enabled: true, phase: 'active', toolCount: 20, mountedBy: 'adapter' },
+  ],
+}
+const adapterCard = walk(registration.component({
+  ctx,
+  sessionId: 's1',
+  node: commandNode('', { kind: 'success', text: JSON.stringify(adapterState) }),
+}))
+assert.match(adapterCard.text, /wincu/, 'adapter server listed')
+assert.match(adapterCard.text, /适配器挂载/, 'adapter annotation rendered')
+assert.match(adapterCard.text, /内置挂载/, 'adapter row is read-only')
+assert.match(adapterCard.text, /工具 20/, 'adapter tool count rendered')
+const adapterButtons = adapterCard.host.filter((node) => node.type === 'button')
+assert.equal(adapterButtons.length, 2, 'adapter rows expose no toggle button')
+
 console.log('all client tests passed')
